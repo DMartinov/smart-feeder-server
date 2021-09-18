@@ -1,10 +1,8 @@
-import Device from '../models/device.js';
-import User from '../models/user.js';
-import DeviceDto from '../dto/deviceDto.js';
+import DeviceDto from '../dto/deviceDto';
 
 export default class DeviceService {
     #User;
-    #Device;    
+    #Device;
 
     constructor(user, device) {
         this.#User = user;
@@ -12,25 +10,27 @@ export default class DeviceService {
     }
 
     async getById(id) {
-        return await this.#Device.getById(id);
+        return this.#Device.getById(id);
     }
 
-    async getDevices({ userId = null, deviceIds = [], page = 0, pageSize = 20 }) {
-        const query = this.#Device.find({ deleted: false });
+    async getDevices({
+        userId = null, deviceIds = [], page = 0, pageSize = 20,
+    }) {
+        let query = this.#Device.find({ deleted: false });
         if (userId) {
             const user = await this.#User.findById(userId);
+            // eslint-disable-next-line no-param-reassign
             deviceIds = user.devices.toObject();
-
         }
         if (deviceIds) {
-            query = query.where('_id').in(userDeviceIds);
+            query = query.where('_id').in(deviceIds);
         }
 
         const skipCount = page * pageSize;
 
         query = query.skip(skipCount).take(pageSize);
         const devices = await query.exec();
-        const dtos = devices?.map(device => new DeviceDto(device));
+        const dtos = devices?.map((device) => new DeviceDto(device));
         return dtos;
     }
 
@@ -50,7 +50,10 @@ export default class DeviceService {
 
         return device;
     }
-    async updateDeviceState({ id, status, message, charge, feed, water, command, commandState }) {
+
+    async updateDeviceState({
+        id, status, message, charge, feed, water, command, commandState,
+    }) {
         const device = await this.#Device.findByIdAndUpdate(id, {
             status,
             message,

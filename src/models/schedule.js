@@ -28,5 +28,5 @@ export default new Schema({
     active: {
         type: Boolean,
         defaulf: false,
-    }
+    },
 });

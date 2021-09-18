@@ -7,7 +7,7 @@ export default class HistoryDto {
     message;
     userId;
 
-    constructor(history){
+    constructor(history) {
         this.deviceId = history.deviceId.toString();
         this.date = history.date;
         this.portion = history.portion;

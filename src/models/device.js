@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
-import { deviceState, deviceCommand, deviceCommandState } from '../models/types';
-
+import { deviceState, deviceCommand, deviceCommandState } from './types';
 
 const deviceSchema = new Schema({
     name: {
@@ -14,11 +13,11 @@ const deviceSchema = new Schema({
     },
     command: {
         type: String,
-        enum: Object.values(deviceCommand),        
+        enum: Object.values(deviceCommand),
     },
     commandState: {
         type: String,
-        enum: Object.values(deviceCommandState), 
+        enum: Object.values(deviceCommandState),
     },
     message: {
         type: String,

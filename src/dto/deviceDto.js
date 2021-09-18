@@ -5,7 +5,7 @@ export default class DeviceDto {
     message;
     charge;
     feed;
-    water;    
+    water;
     logs;
     deleted;
 

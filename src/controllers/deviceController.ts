@@ -1,30 +1,34 @@
 import { validationResult } from 'express-validator';
-import { userRole, deviceCommandState } from '../models/types.js';
-import ApiError from '../exceptions/apiError.js';
+import { userRole, deviceCommandState } from '../models/types';
+import ApiError from '../exceptions/apiError';
 
 export default class DeviceController {
     #deviceService;
 
-    constructor(deviceService) {
+    constructor(deviceService: any) {
         this.#deviceService = deviceService;
     }
 
-    async getDevices(request, response) {
+    async getDevices(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
         }
 
         try {
-            const { userId, deviceIds, page, pageSize } = request.body;
-            const devices = await this.#deviceService.getDevices({ userId, deviceIds, page, pageSize });
+            const {
+                userId, deviceIds, page, pageSize,
+            } = request.body;
+            const devices = await this.#deviceService.getDevices({
+                userId, deviceIds, page, pageSize,
+            });
             return response.json(devices);
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 
-    async updateDevice(request, response) {
+    async updateDevice(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -35,45 +39,50 @@ export default class DeviceController {
             await this.#deviceService.updateDevice({ id, name, deleted });
             return response.json('OK');
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 
-    async addDevice(request, response) {
+    async addDevice(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
         }
 
         try {
-            const { userId, name } = request.body;
-            if (request.user.role != userRole.admin) {
+            let { userId } = request.body;
+            const { name } = request.body;
+            if (request.user.role !== userRole.admin) {
                 userId = request.user.id;
             }
 
             const device = await this.#deviceService.addDevice({ userId, name });
             return response.json(device);
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 
-    async updateDeviceState(request, response) {
+    async updateDeviceState(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
         }
 
         try {
-            const { id, status, message, charge, feed, water, commandState } = request.body;
-            await this.#deviceService.updateDeviceState({ id, status, message, charge, feed, water, commandState });
+            const {
+                id, status, message, charge, feed, water, commandState,
+            } = request.body;
+            await this.#deviceService.updateDeviceState({
+                id, status, message, charge, feed, water, commandState,
+            });
             return response.json('OK');
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 
-    async setCommand(request, response) {
+    async setCommand(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -84,17 +93,17 @@ export default class DeviceController {
             const device = await this.#deviceService.getById(id);
 
             if (device.commandState === deviceCommandState.inProgress) {
-                const errors = [{
+                const error = {
                     msg: "New command can't be set until the previous in progress",
-                    param: "command",
-                }];
-                return next(ApiError.BadRequest('Validation errors', errors));
+                    param: 'command',
+                };
+                return next(ApiError.BadRequest('Validation errors', [error]));
             }
 
             await this.#deviceService.updateDeviceState({ id, command, commandState: deviceCommandState.new });
             return response.json('OK');
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
 }

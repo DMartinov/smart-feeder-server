@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-class TokenHelper {
+export default class TokenHelper {
     static generateAccessToken(payload) {
         return jwt.sign({ payload }, process.env.JWT_ACCESS_SECRET, { expiresIn: '30m' });
     }
@@ -25,5 +25,3 @@ class TokenHelper {
         }
     }
 }
-
-export default TokenHelper;

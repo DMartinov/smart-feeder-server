@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Schema, ObjectId } from 'mongoose';
 import { portion, feedStatus } from './types';
 
 export default new Schema({
@@ -22,12 +22,12 @@ export default new Schema({
     },
     manual: {
         type: Boolean,
-        default: false,        
+        default: false,
     },
     message: {
         type: String,
     },
     userId: {
-        type: String,        
+        type: String,
     },
 });

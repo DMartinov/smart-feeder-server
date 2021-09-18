@@ -1,17 +1,19 @@
-import HistoryDto from '../dto/historyDto.js';
-import History from '../models/history.js';
+import HistoryDto from '../dto/historyDto';
 
+export default class HistoryService {
+  #History;
 
-class HistoryService {
-    async getHistory(deviceId) {
-        const history = History.find({deviceId});
-        const historyDtos = history?.map(h => new HistoryDto(h));
-        return historyDtos;
-    }
+  constructor(history) {
+      this.#History = history;
+  }
 
-    async addHistory(historyDto) {
-        await History.create(historyDto);
-    }
+  async getHistory(deviceId) {
+      const history = this.#History.find({ deviceId });
+      const historyDtos = history?.map((h) => new HistoryDto(h));
+      return historyDtos;
+  }
+
+  async addHistory(historyDto) {
+      await this.#History.create(historyDto);
+  }
 }
-
-export default new HistoryService();

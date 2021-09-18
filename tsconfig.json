@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "types": [
+      "Node"
+    ],
     "lib": [
-      "es2020",
       "esnext.asynciterable"
     ],
     "typeRoots": [
@@ -13,8 +16,8 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "module": "es2015",
+    "moduleResolution": "Node",
+    "module": "ESNext",
     "pretty": true,
     "sourceMap": true,
     "outDir": "./build",
@@ -23,6 +26,9 @@
   },
   "include": [
     "./src/**/*"
+  ],
+  "files": [
+    "./src/server.ts"
   ],
   "exclude": [
     "node_modules",

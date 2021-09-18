@@ -1,10 +1,16 @@
 export default class ScheduleDto {
     id;
+
     repeat;
+
     date;
+
     dateFrom;
+
     dateTo;
+
     portionSize;
+
     active;
 
     constructor(schedule) {

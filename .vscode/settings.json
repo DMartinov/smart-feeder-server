@@ -1,0 +1,12 @@
+{
+    "eslint.format.enable": true,
+    "eslint.validate": [
+        "javascript",
+        "vue",
+        "html"
+    ],
+    "[javascript]": {
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "files.autoSave": "afterDelay"
+}

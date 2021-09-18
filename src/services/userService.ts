@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import * as argon2 from 'argon2';
 import { v4 as uuid } from 'uuid';
 import { userRole } from '../models/types';
@@ -14,7 +15,7 @@ export default class UserService {
         this.#emailService = emailService;
     }
 
-    #getJwtTokens(user) {
+    static #getJwtTokens(user) {
         const userDto = new UserDto(user);
 
         return {
@@ -30,7 +31,7 @@ export default class UserService {
         }
 
         const activationId = uuid();
-        await this.#emailService.sendActivationLink({ email, activationId })
+        await this.#emailService.sendActivationLink({ email, activationId });
         const user = await this.#User.create({ email, activationId, role: userRole.user });
         return user;
     }
@@ -48,7 +49,7 @@ export default class UserService {
 
         const passwordHash = await argon2.hash(password);
 
-        const { accessToken, refreshToken } = this.#getJwtTokens(user);
+        const { accessToken, refreshToken } = UserService.#getJwtTokens(user);
 
         await this.#User.findByIdAndUpdate(user._id, { refreshToken, password: passwordHash, name });
 
@@ -70,7 +71,7 @@ export default class UserService {
             throw ApiError.BadRequest('User not found');
         }
 
-        const { accessToken, refreshToken } = this.#getJwtTokens(user);
+        const { accessToken, refreshToken } = UserService.#getJwtTokens(user);
 
         await this.#User.findByIdAndUpdate(user._id, { refreshToken });
 
@@ -89,35 +90,35 @@ export default class UserService {
     }
 
     async refresh(refreshToken) {
-        if(!refreshToken) {
+        if (!refreshToken) {
             throw ApiError.UnauthorizedError();
         }
 
         const userData = TokenHelper.validateRefreshToken(refreshToken);
-        if (userData == null) {            
+        if (userData == null) {
             throw ApiError.UnauthorizedError();
         }
 
         const user = await this.#User.findById(userData.payload.id);
-        if (!user || user.refreshToken != refreshToken) {
+        if (!user || user.refreshToken !== refreshToken) {
             throw ApiError.UnauthorizedError();
         }
 
-        const newTokens = this.#getJwtTokens(user);
+        const newTokens = UserService.#getJwtTokens(user);
 
         await this.#User.findByIdAndUpdate(user._id, { refreshToken: newTokens.refreshToken });
 
         return {
             accessToken: newTokens.accessToken,
             refreshToken: newTokens.refreshToken,
-        };  
+        };
     }
 
-    async getUser(id) {
+    // async getUser(id) {
 
-    }
+    // }
 
-    async getUsers({ page = 0, pageSize = 20 }) {
-        
-    }
+    // async getUsers({ page = 0, pageSize = 20 }) {
+
+    // }
 }
