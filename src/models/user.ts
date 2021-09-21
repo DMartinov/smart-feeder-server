@@ -31,6 +31,9 @@ export default model('users', new Schema(
             type: String,
             maxLength: 255,
         },
+        loginAttempts: {
+            type: Number,
+        },
     },
     { timestamps: true },
 ));

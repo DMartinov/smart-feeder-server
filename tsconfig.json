@@ -2,9 +2,9 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "target": "ESNext",
-    "types": [
-      "Node"
-    ],
+    // "types": [
+    //   "Node"
+    // ],
     "lib": [
       "esnext.asynciterable"
     ],
@@ -17,19 +17,18 @@
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "Node",
-    "module": "ESNext",
+    "module": "CommonJS",
     "pretty": true,
     "sourceMap": true,
     "outDir": "./build",
     "allowJs": true,
     "noEmit": false
   },
+  "files": ["./server.ts"],
   "include": [
     "./src/**/*"
   ],
-  "files": [
-    "./src/server.ts"
-  ],
+  
   "exclude": [
     "node_modules",
     "tests"

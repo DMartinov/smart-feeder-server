@@ -1,9 +1,9 @@
-import { Schema, ObjectId } from 'mongoose';
+import { Schema } from 'mongoose';
 import { portion, scheduleType } from './types';
 
 export default new Schema({
     deviceId: {
-        type: ObjectId,
+        type: String,
         required: true,
     },
     repeat: {

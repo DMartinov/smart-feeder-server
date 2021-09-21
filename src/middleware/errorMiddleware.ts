@@ -1,4 +1,4 @@
-import createLogger from '../helpers/logger.js';
+import createLogger from '../helpers/logger';
 import ApiError from '../exceptions/apiError';
 
 const logger = createLogger();

@@ -3,13 +3,15 @@ import { body } from 'express-validator';
 import UserController from '../controllers/userController';
 import UserService from '../services/userService';
 import EmailService from '../services/emailService';
-import User from '../models/user.js';
+import User from '../models/user';
 import authMiddleware from '../middleware/authMiddleware';
 import roleRequiredMiddleware from '../middleware/roleRequiredMiddleware';
-import { userRole } from '../models/types.js';
+import { userRole } from '../models/types';
+import utils from '../helpers/utils';
 
 const router = new Router();
 const userController = new UserController(new UserService(User, new EmailService()));
+utils.bindAll(userController);
 
 router.post('/sendregistrationlink',
     authMiddleware,

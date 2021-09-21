@@ -23,8 +23,7 @@
     }
   },
   "env": {
-    "browser": false,
-    "es2021": true
+    "node": true    
   },
   "extends": [
     "airbnb-base",
@@ -33,7 +32,9 @@
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.json",
+    "ecmaVersion": "latest", 
+    "sourceType": "module"
   },
   "plugins": [
     "@typescript-eslint"

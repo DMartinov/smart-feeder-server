@@ -1,15 +1,9 @@
-// Importing required modules
 import cors from 'cors';
 import express from 'express';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import mongodb from './helpers/db/mongodb.js';
-import errorMiddleware from './middleware/errorMiddleware.js';
-import userRouter from './routes/userRouter.js';
-
-const filename = fileURLToPath(import.meta.url);
-const dirName = dirname(filename);
+import mongodb from './src/helpers/db/mongodb';
+import errorMiddleware from './src/middleware/errorMiddleware';
+import userRouter from './src/routes/userRouter';
 
 // parse env variables
 dotenv.config();
@@ -30,7 +24,7 @@ app.use(errorMiddleware);
 app.set('view engine', 'html');
 
 // Static folder
-app.use(express.static(`${dirName}/views/`));
+app.use(express.static(`${__dirname}/views/`));
 
 // Listening to port
 app.listen(port);
