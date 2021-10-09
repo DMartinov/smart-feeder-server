@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { userRole } from './types';
 
-export default model('users', new Schema(
+const userSchema = new Schema<IUser>(
     {
         email: {
             type: String,
@@ -36,4 +36,17 @@ export default model('users', new Schema(
         },
     },
     { timestamps: true },
-));
+);
+
+export interface IUser {
+    email: string,
+    name: string,
+    role: string,
+    password: string,
+    devices: Array<number>,
+    activationId: string,
+    refreshToken: string,
+    loginAttempts: number,
+}
+
+export default model<IUser>('users', userSchema);

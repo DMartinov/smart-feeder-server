@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import mongodb from './src/helpers/db/mongodb';
 import errorMiddleware from './src/middleware/errorMiddleware';
@@ -18,6 +19,7 @@ const app = express();
 // Configure middlewares
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use('/user', userRouter);
 app.use(errorMiddleware);
 

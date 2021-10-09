@@ -1,7 +1,7 @@
-import { Schema, model } from 'mongoose';
+import { model, Schema } from 'mongoose';
 import { deviceState, deviceCommand, deviceCommandState } from './types';
 
-const deviceSchema = new Schema({
+const deviceSchema = new Schema<IDevice>({
     name: {
         type: String,
         required: [true, 'name field is required'],
@@ -46,4 +46,16 @@ const deviceSchema = new Schema({
     },
 });
 
-export default model('devices', deviceSchema);
+export interface IDevice {
+    name: string,
+    status: string, // TODO: use enums
+    command: string,
+    commandState: string,
+    message: string,
+    charge: number,
+    feed: number,
+    water: number,
+    deleted: boolean,
+}
+
+export default model<IDevice>('devices', deviceSchema);

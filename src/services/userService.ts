@@ -5,16 +5,10 @@ import { userRole } from '../models/types';
 import TokenHelper from '../helpers/tokenHelper';
 import UserDto from '../dto/userDto';
 import ApiError from '../exceptions/apiError';
+import emailService from './emailService';
+import User from '../models/user';
 
 export default class UserService {
-    #User;
-    #emailService;
-
-    constructor(userModel, emailService) {
-        this.#User = userModel;
-        this.#emailService = emailService;
-    }
-
     static #getJwtTokens(user) {
         const userDto = new UserDto(user);
 
@@ -24,20 +18,20 @@ export default class UserService {
         };
     }
 
-    async sendRegistrationLink(email) {
-        const candidate = await this.#User.findOne({ email });
+    static async sendRegistrationLink(email) {
+        const candidate = await User.findOne({ email });
         if (candidate) {
             throw ApiError.BadRequest(`User with email ${email} is already exists`);
         }
 
         const activationId = uuid();
-        await this.#emailService.sendActivationLink({ email, activationId });
-        const user = await this.#User.create({ email, activationId, role: userRole.user });
+        await emailService.sendActivationLink({ email, activationId });
+        const user = await User.create({ email, activationId, role: userRole.user });
         return user;
     }
 
-    async signUp({ name, password, activationId }) {
-        const user = await this.#User.findOne({ activationId });
+    static async signUp({ name, password, activationId }) {
+        const user = await User.findOne({ activationId });
 
         if (!user) {
             throw ApiError.BadRequest('Wrong activation link');
@@ -51,7 +45,7 @@ export default class UserService {
 
         const { accessToken, refreshToken } = UserService.#getJwtTokens(user);
 
-        await this.#User.findByIdAndUpdate(user._id, { refreshToken, password: passwordHash, name });
+        await User.findByIdAndUpdate(user._id, { refreshToken, password: passwordHash, name });
 
         return {
             accessToken,
@@ -59,21 +53,22 @@ export default class UserService {
         };
     }
 
-    async logIn(email, password) {
-        const user = await this.#User.findOne({ email });
+    static async logIn(email, password) {
+        const user = await User.findOne({ email });
 
         if (!user) {
             throw ApiError.BadRequest('User not found');
         }
 
         const isCorrectPassword = await argon2.verify(user.password, password);
+
         if (!isCorrectPassword) {
             throw ApiError.BadRequest('User not found');
         }
 
         const { accessToken, refreshToken } = UserService.#getJwtTokens(user);
 
-        await this.#User.findByIdAndUpdate(user._id, { refreshToken });
+        await User.findByIdAndUpdate(user._id, { refreshToken });
 
         return {
             accessToken,
@@ -81,15 +76,15 @@ export default class UserService {
         };
     }
 
-    async logOut(userId) {
+    static async logOut(userId) {
         if (!userId) {
             throw ApiError.BadRequest('User not found');
         }
 
-        await this.#User.findByIdAndUpdate(userId, { refreshToken: null });
+        await User.findByIdAndUpdate(userId, { refreshToken: null });
     }
 
-    async refresh(refreshToken) {
+    static async refresh(refreshToken) {
         if (!refreshToken) {
             throw ApiError.UnauthorizedError();
         }
@@ -99,14 +94,14 @@ export default class UserService {
             throw ApiError.UnauthorizedError();
         }
 
-        const user = await this.#User.findById(userData.payload.id);
+        const user = await User.findById(userData.payload.id);
         if (!user || user.refreshToken !== refreshToken) {
             throw ApiError.UnauthorizedError();
         }
 
         const newTokens = UserService.#getJwtTokens(user);
 
-        await this.#User.findByIdAndUpdate(user._id, { refreshToken: newTokens.refreshToken });
+        await User.findByIdAndUpdate(user._id, { refreshToken: newTokens.refreshToken });
 
         return {
             accessToken: newTokens.accessToken,
@@ -114,11 +109,13 @@ export default class UserService {
         };
     }
 
-    // async getUser(id) {
-
+    // static async getUser(id) {
+    //     const user = await User.findById(id);
+    //     const dto = new UserDto(user);
+    //     return dto;
     // }
 
-    // async getUsers({ page = 0, pageSize = 20 }) {
-
-    // }
+    static async getUsers({ page = 0, pageSize = 20 }) {
+        return { page, pageSize };
+    }
 }

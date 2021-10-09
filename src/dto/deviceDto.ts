@@ -6,7 +6,6 @@ export default class DeviceDto {
     charge;
     feed;
     water;
-    logs;
     deleted;
 
     constructor(device) {
@@ -17,7 +16,6 @@ export default class DeviceDto {
         this.charge = device.charge;
         this.feed = device.feed;
         this.water = device.water;
-        this.logs = device.logs;
         this.deleted = device.deleted;
     }
 }

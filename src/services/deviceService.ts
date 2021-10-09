@@ -1,26 +1,21 @@
 import DeviceDto from '../dto/deviceDto';
+import User from '../models/user';
+import Device from '../models/device';
+import { deviceCommandState } from '../models/types';
 
 export default class DeviceService {
-    #User;
-    #Device;
-
-    constructor(user, device) {
-        this.#User = user;
-        this.#Device = device;
+    static async getById(id) {
+        return Device.findById(id);
     }
 
-    async getById(id) {
-        return this.#Device.getById(id);
-    }
-
-    async getDevices({
+    static async getDevices({
         userId = null, deviceIds = [], page = 0, pageSize = 20,
     }) {
-        let query = this.#Device.find({ deleted: false });
+        let query = Device.find({ deleted: false });
         if (userId) {
-            const user = await this.#User.findById(userId);
+            const user = await User.findById(userId);
             // eslint-disable-next-line no-param-reassign
-            deviceIds = user.devices.toObject();
+            deviceIds = user.devices?.map((x) => x.toString());
         }
         if (deviceIds) {
             query = query.where('_id').in(deviceIds);
@@ -28,22 +23,22 @@ export default class DeviceService {
 
         const skipCount = page * pageSize;
 
-        query = query.skip(skipCount).take(pageSize);
+        query = query.skip(skipCount).limit(pageSize);
         const devices = await query.exec();
         const dtos = devices?.map((device) => new DeviceDto(device));
         return dtos;
     }
 
-    async addDevice({ userId, name }) {
-        const newDevice = await this.#Device.create({ name });
-        const user = await this.#User.findById(userId);
+    static async addDevice({ userId, name }) {
+        const newDevice = await Device.create({ name });
+        const user = await User.findById(userId);
         await user.devices.push(newDevice._id.toString());
 
         return new DeviceDto(newDevice);
     }
 
-    async updateDeviceInfo({ id, name, deleted = false }) {
-        const device = await this.#Device.findByIdAndUpdate(id, {
+    static async updateDeviceInfo({ id, name, deleted = false }) {
+        const device = await Device.findByIdAndUpdate(id, {
             name,
             deleted,
         });
@@ -51,17 +46,25 @@ export default class DeviceService {
         return device;
     }
 
-    async updateDeviceState({
-        id, status, message, charge, feed, water, command, commandState,
+    static async updateDeviceState({
+        id, status, message, charge, feed, water, commandState,
     }) {
-        const device = await this.#Device.findByIdAndUpdate(id, {
+        const device = await Device.findByIdAndUpdate(id, {
             status,
             message,
             charge,
             feed,
             water,
-            command,
             commandState,
+        });
+
+        return device;
+    }
+
+    static async setCommand({ id, command }) {
+        const device = await Device.findByIdAndUpdate(id, {
+            command,
+            commandState: deviceCommandState.new,
         });
 
         return device;
