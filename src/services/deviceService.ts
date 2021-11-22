@@ -1,7 +1,9 @@
+import * as argon2 from 'argon2';
 import DeviceDto from '../dto/deviceDto';
 import User from '../models/user';
 import Device from '../models/device';
-import { deviceCommandState } from '../models/types';
+import ApiError from '../exceptions/apiError';
+import { DeviceCommandState, UserRole } from '../models/enums';
 
 export default class DeviceService {
     static async getById(id) {
@@ -16,8 +18,9 @@ export default class DeviceService {
             const user = await User.findById(userId);
             // eslint-disable-next-line no-param-reassign
             deviceIds = user.devices?.map((x) => x.toString());
+            if (!deviceIds?.length) return null;
         }
-        if (deviceIds) {
+        if (deviceIds?.length) {
             query = query.where('_id').in(deviceIds);
         }
 
@@ -25,16 +28,54 @@ export default class DeviceService {
 
         query = query.skip(skipCount).limit(pageSize);
         const devices = await query.exec();
-        const dtos = devices?.map((device) => new DeviceDto(device));
+        // const users = await User.find({ deviceIds: { $elemMatch: { $in: foundDeviceIds } } });
+        const dtos = await Promise.all(devices?.map(async (device) => {
+            // TODO: refactoring
+            const deviceUsers = await User.find({ devices: device.id, deleted: false, role: { $ne: UserRole.device } });
+            return new DeviceDto(device, deviceUsers);
+        }));
         return dtos;
     }
 
-    static async addDevice({ userId, name }) {
+    static async addDevice({
+        userId, name, login, password,
+    }) {
+        // check if exists
+        const candidate = await User.findOne({ email: login, deleted: false });
+        if (candidate) {
+            throw ApiError.BadRequest(`Device with login ${login} is already exists`);
+        }
+
         const newDevice = await Device.create({ name });
-        const user = await User.findById(userId);
-        await user.devices.push(newDevice._id.toString());
+
+        // create user for device
+        const passwordHash = await argon2.hash(password);
+        const deviceUser = await User.create({
+            email: login,
+            role: UserRole.device,
+            adminId: userId,
+            password: passwordHash,
+            devices: [newDevice._id],
+        });
+
+        // add device to user
+        if (userId) {
+            const user = await User.findById(userId);
+
+            if (user.devices == null) {
+                await user.update({ devices: [newDevice._id] });
+            } else {
+                await User.findByIdAndUpdate(userId, { $push: { devices: newDevice._id } });
+            }
+        }
 
         return new DeviceDto(newDevice);
+    }
+
+    static async deleteDevice(id) {
+        await Device.findByIdAndUpdate(id, { deleted: true });
+        await User.updateMany({ devices: id, role: { $ne: UserRole.device } }, { $pullAll: { devices: [id] } });
+        await User.updateOne({ devices: id, role: UserRole.device }, { deleted: true });
     }
 
     static async updateDeviceInfo({ id, name, deleted = false }) {
@@ -64,7 +105,7 @@ export default class DeviceService {
     static async setCommand({ id, command }) {
         const device = await Device.findByIdAndUpdate(id, {
             command,
-            commandState: deviceCommandState.new,
+            commandState: DeviceCommandState.new,
         });
 
         return device;

@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { deviceState, deviceCommand, deviceCommandState } from './types';
+import { DeviceState, DeviceCommand, DeviceCommandState } from './enums';
 
 const deviceSchema = new Schema<IDevice>({
     name: {
@@ -8,16 +8,16 @@ const deviceSchema = new Schema<IDevice>({
     },
     status: {
         type: String,
-        enum: Object.values(deviceState),
-        default: deviceState.offline,
+        enum: Object.values(DeviceState),
+        default: DeviceState.offline,
     },
     command: {
         type: String,
-        enum: Object.values(deviceCommand),
+        enum: Object.values(DeviceCommand),
     },
     commandState: {
         type: String,
-        enum: Object.values(deviceCommandState),
+        enum: Object.values(DeviceCommandState),
     },
     message: {
         type: String,
@@ -50,7 +50,7 @@ export interface IDevice {
     name: string,
     status: string, // TODO: use enums
     command: string,
-    commandState: string,
+    commandState: DeviceCommandState,
     message: string,
     charge: number,
     feed: number,

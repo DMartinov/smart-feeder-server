@@ -1,5 +1,5 @@
-import { Schema, model } from 'mongoose';
-import { userRole } from './types';
+import { Schema, model, ObjectId } from 'mongoose';
+import { UserRole } from './enums';
 
 const userSchema = new Schema<IUser>(
     {
@@ -14,15 +14,19 @@ const userSchema = new Schema<IUser>(
         },
         role: {
             type: String,
-            enum: Object.keys(userRole),
-            default: userRole.user,
+            enum: Object.values(UserRole),
+            default: UserRole.user,
+        },
+        adminId: {
+            type: Schema.Types.ObjectId,
+            default: null,
         },
         password: {
             type: String,
             maxLength: 512,
         },
         devices: {
-            type: [Number],
+            type: [Schema.Types.ObjectId],
         },
         activationId: {
             type: String,
@@ -33,6 +37,11 @@ const userSchema = new Schema<IUser>(
         },
         loginAttempts: {
             type: Number,
+            default: 0,
+        },
+        deleted: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true },
@@ -41,12 +50,14 @@ const userSchema = new Schema<IUser>(
 export interface IUser {
     email: string,
     name: string,
-    role: string,
+    role: UserRole,
+    adminId: ObjectId,
     password: string,
-    devices: Array<number>,
+    devices: Array<ObjectId>,
     activationId: string,
     refreshToken: string,
     loginAttempts: number,
+    deleted: boolean,
 }
 
 export default model<IUser>('users', userSchema);

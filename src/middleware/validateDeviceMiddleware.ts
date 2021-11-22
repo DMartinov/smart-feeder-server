@@ -1,5 +1,5 @@
 import ApiError from '../exceptions/apiError';
-import { userRole } from '../models/types';
+import { userRole } from '../models/enums';
 
 export default () => (request, response, next) => {
     if (request.user.role === userRole.admin) {

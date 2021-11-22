@@ -7,8 +7,9 @@ export default class DeviceDto {
     feed;
     water;
     deleted;
+    users;
 
-    constructor(device) {
+    constructor(device, users = null) {
         this.id = device.id;
         this.name = device.name;
         this.status = device.status;
@@ -17,5 +18,10 @@ export default class DeviceDto {
         this.feed = device.feed;
         this.water = device.water;
         this.deleted = device.deleted;
+        this.users = users?.map((user) => ({
+            id: user._id,
+            name: user.name,
+            role: user.role,
+        }));
     }
 }

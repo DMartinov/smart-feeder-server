@@ -1,14 +1,25 @@
-// import Router from 'express';
-// import { body } from 'express-validator';
-// import DeviceController from '../controllers/deviceController';
-// import DeviceService from '../services/deviceService';
-// import user from '../models/user';
-// import device from '../models/device';
+import Router from 'express';
+import { body } from 'express-validator';
+import authMiddleware from '../middleware/authMiddleware';
+import roleRequiredMiddleware from '../middleware/roleRequiredMiddleware';
+import DeviceController from '../controllers/deviceController';
+import { UserRole } from '../models/enums';
 
-// const router = new Router();
-// const deviceController = new DeviceController(new DeviceService(user, device));
+const router = new Router();
 
-// router.get('/devices');
-// router.post('/update');
+router.get('/getDevices', authMiddleware, DeviceController.getDevices);
+router.post('/add',
+    authMiddleware,
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.admin]),
+    body('name').isLength({ min: 3, max: 30 }),
+    body('login').isLength({ max: 100 }),
+    body('password').isLength({ max: 20 }),
+    DeviceController.addDevice);
+router.post('/update');
+router.post('/delete',
+    authMiddleware,
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.admin]),
+    body('id').isString(),
+    DeviceController.deleteDevice);
 
-// export default router;
+export default router;

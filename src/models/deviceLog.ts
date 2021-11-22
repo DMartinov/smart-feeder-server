@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { logType } from './types';
+import { LogType } from './enums';
 
 export default new Schema({
     date: {
@@ -8,7 +8,7 @@ export default new Schema({
     },
     type: {
         type: String,
-        enum: Object.values(logType),
+        enum: Object.values(LogType),
     },
     message: {
         type: String,

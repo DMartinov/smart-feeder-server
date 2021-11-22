@@ -1,5 +1,5 @@
 import { validationResult } from 'express-validator';
-import { userRole, deviceCommandState } from '../models/types';
+import { UserRole, DeviceCommandState } from '../models/enums';
 import ApiError from '../exceptions/apiError';
 import DeviceService from '../services/deviceService';
 
@@ -11,9 +11,13 @@ export default class DeviceController {
         }
 
         try {
-            const {
-                userId, deviceIds, page, pageSize,
-            } = request.body;
+            let { userId } = request.body;
+            const { deviceIds, page, pageSize } = request.body;
+
+            if (request.user.role === UserRole.admin) {
+                userId = request.user.id;
+            }
+
             const devices = await DeviceService.getDevices({
                 userId, deviceIds, page, pageSize,
             });
@@ -46,13 +50,36 @@ export default class DeviceController {
 
         try {
             let { userId } = request.body;
-            const { name } = request.body;
-            if (request.user.role !== userRole.admin) {
+            const { name, login, password } = request.body;
+            if (![UserRole.superAdmin].includes(request.user.role)) {
                 userId = request.user.id;
             }
 
-            const device = await DeviceService.addDevice({ userId, name });
+            const device = await DeviceService.addDevice({
+                userId, name, login, password,
+            });
             return response.json(device);
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    static async deleteDevice(request: any, response: any, next: (arg0: ApiError) => any) {
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return next(ApiError.BadRequest('Validation errors', errors.array()));
+        }
+
+        try {
+            const { id } = request.body;
+            const isSuperAdmin = request.user.role !== UserRole.superAdmin;
+            const isDeviceAssignedToUser = request.user.devices.includes(id);
+            if (!isSuperAdmin && !isDeviceAssignedToUser) {
+                return next(ApiError.Forbidden());
+            }
+
+            await DeviceService.deleteDevice(id);
+            return response.json('Ok');
         } catch (error) {
             return next(error);
         }
@@ -87,7 +114,7 @@ export default class DeviceController {
             const { id, command } = request.body;
             const device = await DeviceService.getById(id);
 
-            if (device.commandState === deviceCommandState.inProgress) {
+            if (device.commandState === DeviceCommandState.inProgress) {
                 const error = {
                     msg: "New command can't be set until the previous in progress",
                     param: 'command',

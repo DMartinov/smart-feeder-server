@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { portion, feedStatus } from './types';
+import { Portion, FeedStatus } from './enums';
 
 export default new Schema({
     deviceId: {
@@ -13,12 +13,12 @@ export default new Schema({
     portion: {
         type: String,
         required: true,
-        enum: Object.keys(portion),
+        enum: Object.values(Portion),
     },
     status: {
         type: String,
         required: true,
-        enum: Object.keys(feedStatus),
+        enum: Object.values(FeedStatus),
     },
     manual: {
         type: Boolean,

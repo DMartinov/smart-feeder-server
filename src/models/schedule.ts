@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { portion, scheduleType } from './types';
+import { Portion, ScheduleType } from './enums';
 
 export default new Schema({
     deviceId: {
@@ -8,8 +8,8 @@ export default new Schema({
     },
     repeat: {
         type: String,
-        enum: Object.keys(scheduleType),
-        default: 'once',
+        enum: Object.values(ScheduleType),
+        default: ScheduleType.once,
     },
     date: {
         type: Date,
@@ -22,8 +22,8 @@ export default new Schema({
     },
     portionSize: {
         type: String,
-        enum: Object.keys(portion),
-        default: portion.medium,
+        enum: Object.values(Portion),
+        default: Portion.medium,
     },
     active: {
         type: Boolean,

@@ -1,12 +1,14 @@
 /* eslint-disable no-underscore-dangle */
 import * as argon2 from 'argon2';
 import { v4 as uuid } from 'uuid';
-import { userRole } from '../models/types';
 import TokenHelper from '../helpers/tokenHelper';
 import UserDto from '../dto/userDto';
 import ApiError from '../exceptions/apiError';
-import emailService from './emailService';
+import EmailService from './emailService';
 import User from '../models/user';
+import constants from '../constants';
+import { UserRole } from '../models/enums';
+import AuthToken from '../models/authToken';
 
 export default class UserService {
     static #getJwtTokens(user) {
@@ -18,19 +20,20 @@ export default class UserService {
         };
     }
 
-    static async sendRegistrationLink(email) {
-        const candidate = await User.findOne({ email });
+    static async sendRegistrationLink(email: string, newUserRole: UserRole, adminId: string): Promise<void> {
+        const candidate = await User.findOne({ email, deleted: false });
         if (candidate) {
             throw ApiError.BadRequest(`User with email ${email} is already exists`);
         }
 
         const activationId = uuid();
-        await emailService.sendActivationLink({ email, activationId });
-        const user = await User.create({ email, activationId, role: userRole.user });
-        return user;
+        await EmailService.sendActivationLink({ email, activationId });
+        await User.create({
+            email, activationId, role: newUserRole, adminId,
+        });
     }
 
-    static async signUp({ name, password, activationId }) {
+    static async signUp(name: string, password: string, activationId: string): Promise<AuthToken> {
         const user = await User.findOne({ activationId });
 
         if (!user) {
@@ -47,36 +50,36 @@ export default class UserService {
 
         await User.findByIdAndUpdate(user._id, { refreshToken, password: passwordHash, name });
 
-        return {
-            accessToken,
-            refreshToken,
-        };
+        return new AuthToken(accessToken, refreshToken);
     }
 
-    static async logIn(email, password) {
-        const user = await User.findOne({ email });
+    static async logIn(email: string, password:string): Promise<AuthToken> {
+        const user = await User.findOne({ email, deleted: false });
 
         if (!user) {
             throw ApiError.BadRequest('User not found');
         }
 
+        if (user.loginAttempts > constants.maxLoginFailedAttempts) {
+            await User.findByIdAndUpdate(user._id, { loginAttempts: user.loginAttempts + 1 });
+            throw ApiError.BadRequest('User blocked due to max failed login attempts exceeded');
+        }
+
         const isCorrectPassword = await argon2.verify(user.password, password);
 
         if (!isCorrectPassword) {
+            await User.findByIdAndUpdate(user._id, { loginAttempts: user.loginAttempts + 1 });
             throw ApiError.BadRequest('User not found');
         }
 
         const { accessToken, refreshToken } = UserService.#getJwtTokens(user);
 
-        await User.findByIdAndUpdate(user._id, { refreshToken });
+        await User.findByIdAndUpdate(user._id, { refreshToken, loginAttempts: 0 });
 
-        return {
-            accessToken,
-            refreshToken,
-        };
+        return new AuthToken(accessToken, refreshToken);
     }
 
-    static async logOut(userId) {
+    static async logOut(userId: string): Promise<void> {
         if (!userId) {
             throw ApiError.BadRequest('User not found');
         }
@@ -84,7 +87,7 @@ export default class UserService {
         await User.findByIdAndUpdate(userId, { refreshToken: null });
     }
 
-    static async refresh(refreshToken) {
+    static async refresh(refreshToken: string): Promise<AuthToken> {
         if (!refreshToken) {
             throw ApiError.UnauthorizedError();
         }
@@ -103,19 +106,26 @@ export default class UserService {
 
         await User.findByIdAndUpdate(user._id, { refreshToken: newTokens.refreshToken });
 
-        return {
-            accessToken: newTokens.accessToken,
-            refreshToken: newTokens.refreshToken,
-        };
+        return new AuthToken(newTokens.accessToken, newTokens.refreshToken);
     }
 
-    // static async getUser(id) {
-    //     const user = await User.findById(id);
-    //     const dto = new UserDto(user);
-    //     return dto;
-    // }
+    static async getUser(id) {
+        const user = await User.findById(id);
+        return user;
+    }
 
-    static async getUsers({ page = 0, pageSize = 20 }) {
-        return { page, pageSize };
+    static async getUsers({ page = 0, pageSize = 20, adminId = null }) {
+        let query = User.find({ deleted: false, role: { $ne: UserRole.device } });
+        if (adminId !== null) {
+            query = query.find({ adminId });
+        }
+
+        const skipCount = page * pageSize;
+        const result = await query.skip(skipCount).limit(pageSize);
+        return result;
+    }
+
+    static async deleteUser(id) {
+        await User.findByIdAndUpdate(id, { deleted: true });
     }
 }
