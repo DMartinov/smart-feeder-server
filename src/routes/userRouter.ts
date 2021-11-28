@@ -14,7 +14,6 @@ router.post('/sendregistrationlink',
     UserController.sendRegistrationLink);
 
 router.get('/get-users', authMiddleware, roleRequiredMiddleware([UserRole.superAdmin]), UserController.getUsers);
-router.get('/get-device-users', authMiddleware, roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]), UserController.getDeviceUsers);
 router.post('/delete', authMiddleware, roleRequiredMiddleware([UserRole.superAdmin]), UserController.deleteUser);
 
 export default router;
