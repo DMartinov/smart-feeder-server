@@ -1,16 +1,22 @@
+import { IDevice } from '../models/data/device';
+import { IUser } from '../models/data/user';
+
 /* eslint-disable no-underscore-dangle */
 export default class UserDto {
     id;
     role;
-    email; // TODO: remove?
-    name; // TODO: remove?
+    email;
+    name;
     devices;
 
-    constructor(model) {
-        this.id = model._id?.toString();
-        this.role = model.role;
-        this.email = model.email;
-        this.name = model.name;
-        this.devices = model.devices?.toObject();
+    constructor(user: IUser, devices: Array<IDevice>) {
+        this.id = user._id?.toString();
+        this.role = user.role;
+        this.email = user.email;
+        this.name = user.name;
+        this.devices = devices?.map((device) => ({
+            id: device._id,
+            name: device.name,
+        }));
     }
 }

@@ -1,7 +1,7 @@
-import { Schema } from 'mongoose';
+import { model, Schema, ObjectId } from 'mongoose';
 import { Portion, FeedStatus } from './enums';
 
-export default new Schema({
+const historySchema = new Schema({
     deviceId: {
         type: String,
         required: true,
@@ -31,3 +31,15 @@ export default new Schema({
         type: String,
     },
 });
+
+export interface IHistory {
+    deviceId: ObjectId,
+    date: Date,
+    portion: Portion,
+    status: FeedStatus,
+    manual: boolean,
+    message: string,
+    userId: ObjectId,
+}
+
+export default model<IHistory>('history', historySchema);

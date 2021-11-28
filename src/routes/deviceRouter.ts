@@ -8,17 +8,23 @@ import { UserRole } from '../models/enums';
 const router = new Router();
 
 router.get('/getDevices', authMiddleware, DeviceController.getDevices);
+
 router.post('/add',
     authMiddleware,
-    roleRequiredMiddleware([UserRole.superAdmin, UserRole.admin]),
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
     body('name').isLength({ min: 3, max: 30 }),
     body('login').isLength({ max: 100 }),
     body('password').isLength({ max: 20 }),
     DeviceController.addDevice);
-router.post('/update');
+
+router.post('/update-name', authMiddleware,
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
+    body('name').isLength({ min: 3, max: 30 }),
+    DeviceController.updateDeviceName);
+
 router.post('/delete',
     authMiddleware,
-    roleRequiredMiddleware([UserRole.superAdmin, UserRole.admin]),
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
     body('id').isString(),
     DeviceController.deleteDevice);
 

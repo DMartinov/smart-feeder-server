@@ -2,6 +2,9 @@ import { validationResult } from 'express-validator';
 import { UserRole, DeviceCommandState } from '../models/enums';
 import ApiError from '../exceptions/apiError';
 import DeviceService from '../services/deviceService';
+import DeviceFilter from '../models/devicesFilter';
+import NewDevice from '../models/newDevice';
+import { IDeviceState } from '../models/data/device';
 
 export default class DeviceController {
     static async getDevices(request: any, response: any, next: (arg0: ApiError) => any) {
@@ -14,28 +17,28 @@ export default class DeviceController {
             let { userId } = request.body;
             const { deviceIds, page, pageSize } = request.body;
 
-            if (request.user.role === UserRole.admin) {
+            if (request.user.role === UserRole.user) {
                 userId = request.user.id;
             }
 
-            const devices = await DeviceService.getDevices({
-                userId, deviceIds, page, pageSize,
-            });
+            const deviceFilter = new DeviceFilter(userId, deviceIds, page, pageSize);
+
+            const devices = await DeviceService.getDevices(deviceFilter);
             return response.json(devices);
         } catch (error) {
             return next(error);
         }
     }
 
-    static async updateDevice(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async updateDeviceName(request: any, response: any, next: (arg0: ApiError) => any) {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
         }
 
         try {
-            const { id, name, deleted } = request.body;
-            await DeviceService.updateDeviceInfo({ id, name, deleted });
+            const { id, name } = request.body;
+            await DeviceService.updateDeviceName(id, name);
             return response.json('OK');
         } catch (error) {
             return next(error);
@@ -55,9 +58,8 @@ export default class DeviceController {
                 userId = request.user.id;
             }
 
-            const device = await DeviceService.addDevice({
-                userId, name, login, password,
-            });
+            const newDeviceRequest = new NewDevice(userId, name, login, password);
+            const device = await DeviceService.addDevice(newDeviceRequest);
             return response.json(device);
         } catch (error) {
             return next(error);
@@ -73,9 +75,11 @@ export default class DeviceController {
         try {
             const { id } = request.body;
             const isSuperAdmin = request.user.role !== UserRole.superAdmin;
-            const isDeviceAssignedToUser = request.user.devices.includes(id);
-            if (!isSuperAdmin && !isDeviceAssignedToUser) {
-                return next(ApiError.Forbidden());
+            if (!isSuperAdmin) {
+                const isDeviceAssignedToUser = DeviceService.checkIfDeviceBelongsToUser(request.user.id, id);
+                if (!isDeviceAssignedToUser) {
+                    return next(ApiError.Forbidden());
+                }
             }
 
             await DeviceService.deleteDevice(id);
@@ -95,9 +99,12 @@ export default class DeviceController {
             const {
                 id, status, message, charge, feed, water, commandState,
             } = request.body;
-            await DeviceService.updateDeviceState({
-                id, status, message, charge, feed, water, commandState,
-            });
+
+            const deviceState: IDeviceState = {
+                status, message, charge, feed, water, commandState,
+            };
+
+            await DeviceService.updateDeviceState(id, deviceState);
             return response.json('OK');
         } catch (error) {
             return next(error);
@@ -122,7 +129,7 @@ export default class DeviceController {
                 return next(ApiError.BadRequest('Validation errors', [error]));
             }
 
-            await DeviceService.setCommand({ id, command });
+            await DeviceService.setCommand(id, command);
             return response.json('OK');
         } catch (err) {
             return next(err);

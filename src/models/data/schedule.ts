@@ -1,7 +1,7 @@
-import { Schema } from 'mongoose';
+import { Schema, model, ObjectId } from 'mongoose';
 import { Portion, ScheduleType } from './enums';
 
-export default new Schema({
+const scheduleSchema = new Schema({
     deviceId: {
         type: String,
         required: true,
@@ -30,3 +30,15 @@ export default new Schema({
         defaulf: false,
     },
 });
+
+export interface ISchedule {
+    deviceId: ObjectId,
+    repeat: ScheduleType,
+    date: Date,
+    dateFrom: Date,
+    dateTo: Date,
+    portionSize: Portion,
+    active: boolean,
+}
+
+export default model<ISchedule>('schedule', scheduleSchema);

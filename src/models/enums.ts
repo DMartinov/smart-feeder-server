@@ -44,7 +44,6 @@ export enum LogType {
 
 export enum UserRole {
     superAdmin = 'superAdmin',
-    admin = 'admin',
     user = 'user',
     device = 'device',
 }

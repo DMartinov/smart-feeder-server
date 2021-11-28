@@ -1,10 +1,8 @@
 import nodemailer from 'nodemailer';
 
 export default class EmailService {
-    static async sendActivationLink({ email, activationId }) {
-        const link = `${process.env.CLIENT_URL}${process.env.ACCOUNT_ACTIVATION_PATH}?activationId=${activationId}`;
-
-        const transporter = nodemailer.createTransport({
+    static #createTransport() {
+        return nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT,
             secure: true,
@@ -13,6 +11,12 @@ export default class EmailService {
                 pass: process.env.SMTP_PASSWORD,
             },
         });
+    }
+
+    static async sendActivationLink(email: string, activationId: string): Promise<void> {
+        const link = `${process.env.CLIENT_URL}${process.env.ACCOUNT_ACTIVATION_PATH}?activationId=${activationId}`;
+
+        const transporter = EmailService.#createTransport();
 
         await transporter.sendMail({
             from: process.env.SMTP_LOGIN,
@@ -22,6 +26,21 @@ export default class EmailService {
             <div>
                 <h1>Follow the link for account activation</h1>
                 <a href="${link}">${link}</a>
+            </div>
+        `,
+        });
+    }
+
+    static async sendNewDeviceNotification(email: string): Promise<void> {
+        const transporter = EmailService.#createTransport();
+        await transporter.sendMail({
+            from: process.env.SMTP_LOGIN,
+            to: email,
+            subject: 'New device in Smart Feeder',
+            html: `
+            <div>
+                <h1>New device!</h1>
+                <p>New device is available for control for your account</p>
             </div>
         `,
         });

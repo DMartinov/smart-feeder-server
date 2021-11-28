@@ -1,7 +1,15 @@
-import { model, Schema } from 'mongoose';
-import { DeviceState, DeviceCommand, DeviceCommandState } from './enums';
+import { model, Schema, ObjectId } from 'mongoose';
+import { DeviceState, DeviceCommand, DeviceCommandState } from '../enums';
 
 const deviceSchema = new Schema<IDevice>({
+    ownerId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+    },
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+    },
     name: {
         type: String,
         required: [true, 'name field is required'],
@@ -46,16 +54,24 @@ const deviceSchema = new Schema<IDevice>({
     },
 });
 
-export interface IDevice {
+export interface IDevice extends IDeviceState{
+    _id: ObjectId | string,
+    // owner user id (device admin)
+    ownerId: ObjectId | string,
+    // identity user id
+    userId: ObjectId | string,
     name: string,
+    command: DeviceCommand,
+    deleted: boolean,
+}
+
+export interface IDeviceState {
     status: string, // TODO: use enums
-    command: string,
-    commandState: DeviceCommandState,
     message: string,
     charge: number,
     feed: number,
     water: number,
-    deleted: boolean,
+    commandState: DeviceCommandState,
 }
 
 export default model<IDevice>('devices', deviceSchema);
