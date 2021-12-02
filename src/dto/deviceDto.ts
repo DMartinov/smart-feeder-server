@@ -1,16 +1,20 @@
-export default class DeviceDto {
-    id;
-    name;
-    status;
-    message;
-    charge;
-    feed;
-    water;
-    deleted;
-    users;
+import { IDevice } from '../models/data/device';
+import { DeviceStatus } from '../models/enums';
+import DeviceUserDto from './deviceUserDto';
 
-    constructor(device, users = null) {
-        this.id = device.id;
+export default class DeviceDto {
+    id: string;
+    name: string;
+    status: DeviceStatus;
+    message: string;
+    charge: number;
+    feed: number;
+    water: number;
+    deleted: boolean;
+    users:Array<DeviceUserDto>;
+
+    constructor(device: IDevice, users: Array<DeviceUserDto> = null) {
+        this.id = device._id.toString();
         this.name = device.name;
         this.status = device.status;
         this.message = device.message;
@@ -18,10 +22,6 @@ export default class DeviceDto {
         this.feed = device.feed;
         this.water = device.water;
         this.deleted = device.deleted;
-        this.users = users?.map((user) => ({
-            id: user._id,
-            name: user.name,
-            role: user.role,
-        }));
+        this.users = users;
     }
 }

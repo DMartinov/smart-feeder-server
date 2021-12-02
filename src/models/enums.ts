@@ -9,7 +9,7 @@ export enum ScheduleType {
     daily,
 }
 
-export enum DeviceState {
+export enum DeviceStatus {
     online,
     offline,
     feeding,

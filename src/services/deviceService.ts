@@ -2,6 +2,7 @@ import * as argon2 from 'argon2';
 import { ObjectId } from 'mongoose';
 import DeviceManager, { IDeviceManager } from '../models/data/deviceManager';
 import DeviceDto from '../dto/deviceDto';
+import DeviceUserDto from '../dto/deviceUserDto';
 import User from '../models/data/user';
 import Device, { IDevice, IDeviceState } from '../models/data/device';
 import ApiError from '../exceptions/apiError';
@@ -23,35 +24,38 @@ export default class DeviceService {
         let query = Device.find({ deleted: false });
         let filterDeviceIds: any = filter.deviceIds;
         if (filter.userId) {
-            filterDeviceIds = await DeviceManager.find({ userId: filter.userId, deleted: false }, { deviceId: true });
+            filterDeviceIds = (await DeviceManager.find({ userId: filter.userId, deleted: false })
+                .select({ deviceId: true }))?.map((x) => x.deviceId);
             if (!filterDeviceIds?.length) return null;
         }
         if (filterDeviceIds?.length) {
-            query = query.where('_id').in(filterDeviceIds);
+            query = query.find({ _id: { $in: filterDeviceIds } });
         }
 
         query = query.skip(filter.skip).limit(filter.pageSize);
         const devices = await query.exec();
 
         // get users
-        // TODO: use lookup
+        // TODO: refactor (use lookup)
         let users = null;
-        let deviceUsers = null;
+        let managers = null;
         const deviceIds = devices?.map((device) => device._id);
         if (deviceIds?.length) {
-            deviceUsers = await DeviceManager.find({ deviceId: { $in: deviceIds }, deleted: false });
-            if (deviceUsers?.length) {
-                const deviceUsersIds = deviceUsers?.map((u) => u._id);
+            managers = await DeviceManager.find({ deviceId: { $in: deviceIds }, deleted: false });
+            if (managers?.length) {
+                const deviceUsersIds = managers?.map((u) => u.userId);
                 users = await User.find({ _id: { $in: deviceUsersIds } });
             }
         }
 
         const dtos = devices?.map((device) => {
-            const userIds = deviceUsers?.filter((deviceUser) => deviceUser.deviceId.toString() === device._id.toString())
-                ?.map((deviceUser) => deviceUser.userId.toString());
+            const deviceManagers = managers?.filter((deviceUser) => deviceUser.deviceId.toString() === device._id.toString());
+            const deviceUserDtos = deviceManagers.map((deviceManager) => {
+                const user = users.find((u) => u._id.toString() === deviceManager.userId.toString());
+                return new DeviceUserDto(user, deviceManager);
+            });
 
-            const du = users?.filter((u) => userIds.includes(u._id.toString()));
-            return new DeviceDto(device, du);
+            return new DeviceDto(device, deviceUserDtos);
         });
 
         // const users = await User.find({ deviceIds: { $elemMatch: { $in: foundDeviceIds } } });
@@ -82,7 +86,7 @@ export default class DeviceService {
         const newDevice = await Device.create({
             name: device.name,
             ownerId: device.deviceOwnerId,
-            userId: deviceUser,
+            userId: deviceUser._id,
         });
 
         // assign user as device manager
@@ -106,6 +110,10 @@ export default class DeviceService {
 
         // delete device identity
         await User.findByIdAndUpdate(device.userId, { deleted: true });
+    }
+
+    static async setUserBlocked(deviceId: ObjectId, userId: ObjectId, blocked: boolean): Promise<void> {
+        await DeviceManager.findOneAndUpdate({ deviceId, userId }, { blocked });
     }
 
     static async updateDeviceName(id: ObjectId | string, name: string): Promise<IDevice> {

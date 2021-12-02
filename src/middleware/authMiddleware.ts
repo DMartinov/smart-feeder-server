@@ -1,5 +1,6 @@
 import ApiError from '../exceptions/apiError';
 import TokenHelper from '../helpers/tokenHelper';
+import { UserRole } from '../models/enums';
 
 export default (request, response, next) => {
     try {
@@ -19,6 +20,7 @@ export default (request, response, next) => {
         }
 
         request.user = userData.payload;
+        request.user.isSuperAdmin = request.user?.role === UserRole.superAdmin;
 
         return next();
     } catch (error) {

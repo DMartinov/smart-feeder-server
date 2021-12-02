@@ -15,7 +15,7 @@ export default class UserController {
         const { email, deviceId = null } = request.body;
         try {
             if (deviceId != null && request.user.role === UserRole.user) {
-                const isDeviceBelongsToUser = DeviceService.checkIfDeviceBelongsToUser(request.user.id, deviceId);
+                const isDeviceBelongsToUser = await DeviceService.checkIfDeviceBelongsToUser(request.user.id, deviceId);
                 if (!isDeviceBelongsToUser) throw ApiError.Forbidden();
             }
 

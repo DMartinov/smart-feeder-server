@@ -13,7 +13,7 @@ router.post('/add',
     authMiddleware,
     roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
     body('name').isLength({ min: 3, max: 30 }),
-    body('login').isLength({ max: 100 }),
+    body('login').isLength({ min: 8, max: 100 }),
     body('password').isLength({ max: 20 }),
     DeviceController.addDevice);
 
@@ -27,5 +27,13 @@ router.post('/delete',
     roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
     body('id').isString(),
     DeviceController.deleteDevice);
+
+router.post('/block-user',
+    authMiddleware,
+    roleRequiredMiddleware([UserRole.superAdmin, UserRole.user]),
+    body('deviceId').isMongoId(),
+    body('userId').isMongoId(),
+    body('blocked').isBoolean(),
+    DeviceController.setUserBlocked);
 
 export default router;

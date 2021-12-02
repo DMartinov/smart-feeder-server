@@ -54,7 +54,7 @@ export default class DeviceController {
         try {
             let { userId } = request.body;
             const { name, login, password } = request.body;
-            if (![UserRole.superAdmin].includes(request.user.role)) {
+            if (!request.user.isSuperAdmin) {
                 userId = request.user.id;
             }
 
@@ -74,8 +74,7 @@ export default class DeviceController {
 
         try {
             const { id } = request.body;
-            const isSuperAdmin = request.user.role !== UserRole.superAdmin;
-            if (!isSuperAdmin) {
+            if (!request.user.isSuperAdmin) {
                 const isDeviceAssignedToUser = DeviceService.checkIfDeviceBelongsToUser(request.user.id, id);
                 if (!isDeviceAssignedToUser) {
                     return next(ApiError.Forbidden());
@@ -83,6 +82,28 @@ export default class DeviceController {
             }
 
             await DeviceService.deleteDevice(id);
+            return response.json('Ok');
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    static async setUserBlocked(request: any, response: any, next: (arg0: ApiError) => any) {
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return next(ApiError.BadRequest('Validation errors', errors.array()));
+        }
+
+        try {
+            const { deviceId, userId, blocked } = request.body;
+            if (!request.user.isSuperAdmin) {
+                const isDeviceAssignedToUser = await DeviceService.checkIfDeviceBelongsToUser(request.user.id, deviceId);
+                if (!isDeviceAssignedToUser) {
+                    return next(ApiError.Forbidden());
+                }
+            }
+
+            await DeviceService.setUserBlocked(deviceId, userId, blocked);
             return response.json('Ok');
         } catch (error) {
             return next(error);

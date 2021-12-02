@@ -35,13 +35,15 @@ export default class UserService {
             EmailService.sendNewDeviceNotification(email);
         }
 
-        const newDeviceManager: IDeviceManager = {
-            deviceId,
-            userId: user._id,
-            blocked: false,
-        };
+        if (deviceId) {
+            const newDeviceManager: IDeviceManager = {
+                deviceId,
+                userId: user._id,
+                blocked: false,
+            };
 
-        await DeviceManager.create(newDeviceManager);
+            await DeviceManager.create(newDeviceManager);
+        }
     }
 
     static async getUsers(filter: FilterBase = new FilterBase()): Promise<Array<UserDto>> {

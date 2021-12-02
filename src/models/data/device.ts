@@ -1,5 +1,5 @@
 import { model, Schema, ObjectId } from 'mongoose';
-import { DeviceState, DeviceCommand, DeviceCommandState } from '../enums';
+import { DeviceStatus, DeviceCommand, DeviceCommandState } from '../enums';
 
 const deviceSchema = new Schema<IDevice>({
     ownerId: {
@@ -16,8 +16,8 @@ const deviceSchema = new Schema<IDevice>({
     },
     status: {
         type: String,
-        enum: Object.values(DeviceState),
-        default: DeviceState.offline,
+        enum: Object.values(DeviceStatus),
+        default: DeviceStatus.offline,
     },
     command: {
         type: String,
@@ -66,7 +66,7 @@ export interface IDevice extends IDeviceState{
 }
 
 export interface IDeviceState {
-    status: string, // TODO: use enums
+    status: DeviceStatus,
     message: string,
     charge: number,
     feed: number,
