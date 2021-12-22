@@ -11,6 +11,7 @@ export default class DeviceDto {
     feed: number;
     water: number;
     deleted: boolean;
+    ownerId: string;
     users:Array<DeviceUserDto>;
 
     constructor(device: IDevice, users: Array<DeviceUserDto> = null) {
@@ -22,6 +23,7 @@ export default class DeviceDto {
         this.feed = device.feed;
         this.water = device.water;
         this.deleted = device.deleted;
+        this.ownerId = device.ownerId?.toString();
         this.users = users;
     }
 }

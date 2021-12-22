@@ -1,5 +1,5 @@
 import { Schema, model, ObjectId } from 'mongoose';
-import { Portion, ScheduleType } from './enums';
+import { Portion, ScheduleType } from '../enums';
 
 const scheduleSchema = new Schema({
     deviceId: {
@@ -32,6 +32,7 @@ const scheduleSchema = new Schema({
 });
 
 export interface ISchedule {
+    _id: ObjectId | string,
     deviceId: ObjectId,
     repeat: ScheduleType,
     date: Date,

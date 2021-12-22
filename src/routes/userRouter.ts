@@ -1,11 +1,11 @@
-import Router from 'express';
+import express from 'express';
 import { body } from 'express-validator';
 import UserController from '../controllers/userController';
 import authMiddleware from '../middleware/authMiddleware';
 import roleRequiredMiddleware from '../middleware/roleRequiredMiddleware';
 import { UserRole } from '../models/enums';
 
-const router = new Router();
+const router = express.Router();
 
 router.post('/sendregistrationlink',
     authMiddleware,

@@ -1,6 +1,5 @@
 import * as argon2 from 'argon2';
 import TokenHelper from '../helpers/tokenHelper';
-import UserDto from '../dto/userDto';
 import ApiError from '../exceptions/apiError';
 import User, { IUser } from '../models/data/user';
 import constants from '../constants';

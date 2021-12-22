@@ -1,11 +1,11 @@
-import Router from 'express';
+import express from 'express';
 import { body } from 'express-validator';
 import authMiddleware from '../middleware/authMiddleware';
 import roleRequiredMiddleware from '../middleware/roleRequiredMiddleware';
 import DeviceController from '../controllers/deviceController';
 import { UserRole } from '../models/enums';
 
-const router = new Router();
+const router = express.Router();
 
 router.get('/getDevices', authMiddleware, DeviceController.getDevices);
 
@@ -35,5 +35,11 @@ router.post('/block-user',
     body('userId').isMongoId(),
     body('blocked').isBoolean(),
     DeviceController.setUserBlocked);
+
+router.post('/update-device-state',
+    authMiddleware,
+    roleRequiredMiddleware([UserRole.device]),
+    body('deviceAuthUserId').isMongoId(),
+    DeviceController.updateDeviceState);
 
 export default router;

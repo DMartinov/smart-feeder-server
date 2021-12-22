@@ -1,8 +1,8 @@
-// import db from '../../db';
-import UserService from '../../../services/userService';
-import User from '../../../models/user';
-import { userRole } from '../../../models/types';
+import UserService from '../../../src/services/userService';
+import User from '../../../src/models/data/user';
+import { userRole } from '../../../src/models/types';
 import { jest } from '@jest/globals';
+// import db from '../../db';
 
 /**
  * Connect to a new in-memory database before running any tests.

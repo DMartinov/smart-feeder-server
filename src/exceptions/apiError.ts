@@ -2,21 +2,21 @@ export default class ApiError extends Error {
     status;
     errors;
 
-    constructor(status, message, errors = []) {
+    constructor(status:number, message:string, errors = []) {
         super(message);
         this.status = status;
         this.errors = errors;
     }
 
-    static UnauthorizedError() {
+    static UnauthorizedError(): ApiError {
         return new ApiError(401, 'User not authorized');
     }
 
-    static Forbidden() {
+    static Forbidden(): ApiError {
         return new ApiError(403, 'User has no permissions to view this content');
     }
 
-    static BadRequest(message, errors = []) {
+    static BadRequest(message:string, errors = []): ApiError {
         return new ApiError(400, message, errors);
     }
 }

@@ -6,7 +6,8 @@ export default class DeviceUserDto {
     public id: string;
     public name: string;
     public role: UserRole;
-    public blocked:boolean;
+    public blocked: boolean;
+    public isDeviceOwner: boolean;
 
     constructor(user: IUser, deviceManager: IDeviceManager) {
         this.id = user._id.toString();

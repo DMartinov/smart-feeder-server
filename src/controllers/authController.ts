@@ -1,10 +1,12 @@
+import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
+import AuthorizedRequest from '../models/authorizedRequest';
 import AuthService from '../services/authService';
 import ApiError from '../exceptions/apiError';
 import constants from '../constants';
 
 export default class AuthController {
-    static async signUp(request, response, next) {
+    static async signUp(request: Request, response: Response, next: NextFunction): Promise<any> {
         try {
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
@@ -20,7 +22,7 @@ export default class AuthController {
         }
     }
 
-    static async logIn(request, response, next) {
+    static async logIn(request: Request, response: Response, next: NextFunction): Promise<any> {
         try {
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
@@ -36,7 +38,7 @@ export default class AuthController {
         }
     }
 
-    static async logOut(request, response, next) {
+    static async logOut(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         try {
             const { user } = request;
             await AuthService.logOut(user?.id);
@@ -47,7 +49,7 @@ export default class AuthController {
         }
     }
 
-    static async refresh(request, response, next) {
+    static async refresh(request: Request, response: Response, next: NextFunction): Promise<any> {
         try {
             const { refreshToken } = request.cookies;
             const tokens = await AuthService.refresh(refreshToken);

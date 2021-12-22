@@ -1,4 +1,6 @@
+import { Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
+import AuthorizedRequest from '../models/authorizedRequest';
 import { UserRole, DeviceCommandState } from '../models/enums';
 import ApiError from '../exceptions/apiError';
 import DeviceService from '../services/deviceService';
@@ -7,7 +9,7 @@ import NewDevice from '../models/newDevice';
 import { IDeviceState } from '../models/data/device';
 
 export default class DeviceController {
-    static async getDevices(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async getDevices(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -30,7 +32,7 @@ export default class DeviceController {
         }
     }
 
-    static async updateDeviceName(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async updateDeviceName(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -45,7 +47,7 @@ export default class DeviceController {
         }
     }
 
-    static async addDevice(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async addDevice(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -66,7 +68,7 @@ export default class DeviceController {
         }
     }
 
-    static async deleteDevice(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async deleteDevice(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -88,7 +90,7 @@ export default class DeviceController {
         }
     }
 
-    static async setUserBlocked(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async setUserBlocked(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -110,17 +112,22 @@ export default class DeviceController {
         }
     }
 
-    static async updateDeviceState(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async updateDeviceState(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
         }
 
-        try {
-            const {
-                id, status, message, charge, feed, water, commandState,
-            } = request.body;
+        const {
+            id, status, message, charge, feed, water, commandState,
+        } = request.body;
 
+        const isDeviceAssignedToUser = DeviceService.checkIfDeviceBelongsToUser(request.user.id, id);
+        if (!isDeviceAssignedToUser) {
+            return next(ApiError.Forbidden());
+        }
+
+        try {
             const deviceState: IDeviceState = {
                 status, message, charge, feed, water, commandState,
             };
@@ -132,7 +139,7 @@ export default class DeviceController {
         }
     }
 
-    static async setCommand(request: any, response: any, next: (arg0: ApiError) => any) {
+    static async setCommand(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));

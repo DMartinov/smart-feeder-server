@@ -11,18 +11,21 @@ import DeviceFilter from '../models/devicesFilter';
 import NewDevice from '../models/newDevice';
 
 export default class DeviceService {
-    static async getById(id) {
+    static async getById(id: ObjectId | string): Promise<IDevice> {
         return Device.findById(id);
     }
 
     static async checkIfDeviceBelongsToUser(userId: ObjectId | string, deviceId: ObjectId | string): Promise<boolean> {
         const device = await Device.findOne({ _id: deviceId, deleted: false });
-        return device.ownerId.toString() === userId.toString();
+        const ownerId = device.ownerId.toString();
+        const uId = userId.toString();
+        const deviceAuthUser = device.userId?.toString();
+        return ownerId === uId || deviceAuthUser === uId;
     }
 
     static async getDevices(filter: DeviceFilter): Promise<Array<DeviceDto>> {
         let query = Device.find({ deleted: false });
-        let filterDeviceIds: any = filter.deviceIds;
+        let filterDeviceIds = filter.deviceIds;
         if (filter.userId) {
             filterDeviceIds = (await DeviceManager.find({ userId: filter.userId, deleted: false })
                 .select({ deviceId: true }))?.map((x) => x.deviceId);
@@ -52,7 +55,10 @@ export default class DeviceService {
             const deviceManagers = managers?.filter((deviceUser) => deviceUser.deviceId.toString() === device._id.toString());
             const deviceUserDtos = deviceManagers.map((deviceManager) => {
                 const user = users.find((u) => u._id.toString() === deviceManager.userId.toString());
-                return new DeviceUserDto(user, deviceManager);
+
+                const deviceUserDto = new DeviceUserDto(user, deviceManager);
+                deviceUserDto.isDeviceOwner = device.ownerId?.toString() === deviceUserDto.id;
+                return deviceUserDto;
             });
 
             return new DeviceDto(device, deviceUserDtos);

@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 
 export default class EmailService {
-    static #createTransport() {
+    static #createTransport(): any {
         return nodemailer.createTransport({
             host: process.env.SMTP_HOST,
             port: process.env.SMTP_PORT,

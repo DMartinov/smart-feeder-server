@@ -1,19 +1,15 @@
+import { ISchedule } from '../models/data/schedule';
+
 export default class ScheduleDto {
     id;
-
     repeat;
-
     date;
-
     dateFrom;
-
     dateTo;
-
     portionSize;
-
     active;
 
-    constructor(schedule) {
+    constructor(schedule: ISchedule) {
         this.id = schedule._id.toString();
         this.repeat = schedule.repeat;
         this.date = schedule.date;

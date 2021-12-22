@@ -1,4 +1,6 @@
 import { validationResult } from 'express-validator';
+import { Response, NextFunction } from 'express';
+import AuthorizedRequest from '../models/authorizedRequest';
 import ApiError from '../exceptions/apiError';
 import UserService from '../services/userService';
 import DeviceService from '../services/deviceService';
@@ -6,7 +8,7 @@ import { UserRole } from '../models/enums';
 import FilterBase from '../models/filterBase';
 
 export default class UserController {
-    static async sendRegistrationLink(request, response, next) {
+    static async sendRegistrationLink(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         const errors = validationResult(request);
         if (!errors.isEmpty()) {
             return next(ApiError.BadRequest('Validation errors', errors.array()));
@@ -26,7 +28,7 @@ export default class UserController {
         }
     }
 
-    static async deleteUser(request, response, next) {
+    static async deleteUser(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         try {
             const errors = validationResult(request);
             if (!errors.isEmpty()) {
@@ -41,7 +43,7 @@ export default class UserController {
         }
     }
 
-    static async getUsers(request: any, response: any, next: any) {
+    static async getUsers(request: AuthorizedRequest, response: Response, next: NextFunction): Promise<any> {
         try {
             const { page, pageSize } = request.body;
             const filter = new FilterBase(page, pageSize);

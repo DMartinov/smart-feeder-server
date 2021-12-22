@@ -1,9 +1,9 @@
-import Router from 'express';
+import express from 'express';
 import { body } from 'express-validator';
 import authMiddleware from '../middleware/authMiddleware';
 import AuthController from '../controllers/authController';
 
-const router = new Router();
+const router = express.Router();
 
 router.post('/signup',
     body('activationId').isUUID(),
